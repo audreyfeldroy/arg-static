@@ -1,6 +1,6 @@
-# arg-static-assets
+# arg-static
 
-Static assets that I use in my notebooks on audrey.feldroy.com
+Static files that I use in my notebooks on audrey.feldroy.com
 
 These include:
 
