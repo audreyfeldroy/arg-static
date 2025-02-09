@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>5-Min Pilates Workout</title>
+<style>
+body{font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f0f0f0}
+.container{text-align:center;background:white;padding:1rem;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,.1);max-width:600px;width:90%}
+h1{color:#333;font-size:1.5rem;margin-top:0}
+.timers{display:flex;justify-content:space-between;margin:.5rem 0}
+.timer{font-size:1.5rem;font-weight:bold}
+#exercise{font-size:1.2rem;margin-bottom:.5rem;font-weight:bold}
+#instructions{text-align:left;margin-bottom:1rem;font-size:.9rem;height:80px;overflow-y:auto;padding:10px;border:1px solid #ddd;border-radius:5px}
+#toggleBtn{font-size:1rem;padding:.5rem 1rem;margin:.5rem;cursor:pointer;background:#4CAF50;color:white;border:none;border-radius:5px;transition:background-color 0.3s}
+#toggleBtn:hover{background:#45a049}
+#toggleBtn.paused{background:#f44336}
+#toggleBtn.paused:hover{background:#d32f2f}
+#exerciseList{display:flex;flex-wrap:wrap;justify-content:center;margin-top:1rem}
+.exerciseItem{font-size:.8rem;padding:.3rem;margin:.2rem;background:#e0e0e0;border-radius:3px;cursor:pointer}
+.exerciseItem:hover,.active{background:#4CAF50;color:white}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>5-Min Pilates Workout</h1>
+<div class="timers">
+<div>Exercise: <span id="exerciseTimer" class="timer">0:30</span></div>
+<div>Total: <span id="totalTimer" class="timer">5:00</span></div>
+</div>
+<div id="exercise">Press Start to begin</div>
+<div id="instructions"></div>
+<button id="toggleBtn">Start</button>
+<div id="exerciseList"></div>
+</div>
+<script>
+const exercises=[
+{name:"Warm-up: March & Arm Swings",duration:30,instructions:"March in place, lifting knees high. Simultaneously do arm swings: 15s swing arms forward and back, then 15s swing arms side to side. Keep marching throughout."},
+{name:"Transition",duration:10,instructions:"Get ready for Pilates 100. Lie on your back, legs extended."},
+{name:"Pilates 100",duration:50,instructions:"Lift head/shoulders. Legs at 45°. Pump arms up/down. Inhale for 5 counts, exhale for 5. Continue for 50 seconds."},
+{name:"Transition",duration:10,instructions:"Prepare for Plank to Down Dog. Move to a plank position."},
+{name:"Plank to Down Dog",duration:30,instructions:"From plank, push hips up/back to Downward Dog, then return to plank. Alternate quickly."},
+{name:"Mountain Climbers",duration:30,instructions:"In plank position, rapidly alternate bringing knees to chest. Keep core tight and hips level."},
+{name:"Transition",duration:10,instructions:"Prepare for Pilates Scissors. Lie on your back, legs extended upward."},
+{name:"Pilates Scissors",duration:30,instructions:"Lower one leg while keeping the other vertical. Switch in a scissor-like motion. Keep lower back pressed to the mat."},
+{name:"Transition",duration:10,instructions:"Get ready for Burpees. Stand up."},
+{name:"Burpees",duration:30,instructions:"Stand > squat > plank > push-up > squat > jump up. Repeat."},
+{name:"Russian Twists",duration:30,instructions:"Sit with knees bent, feet slightly off the ground. Lean back slightly. Twist torso side to side, moving arms across body."},
+{name:"Pilates Roll-Up",duration:30,instructions:"Lie down, arms overhead. Slowly roll up to sitting, then back down. Keep legs straight. Focus on articulating through each vertebra."},
+{name:"High Knees",duration:30,instructions:"Run in place, lifting knees high towards chest. Swing arms at a fast pace."}
+];
+let timer,currentExercise=0,totalTime=0,exerciseTime,isRunning=false;
+const exerciseTimerDisplay=document.getElementById('exerciseTimer'),
+totalTimerDisplay=document.getElementById('totalTimer'),
+exerciseDisplay=document.getElementById('exercise'),
+instructionsDisplay=document.getElementById('instructions'),
+toggleBtn=document.getElementById('toggleBtn'),
+exerciseList=document.getElementById('exerciseList');
+function formatTime(seconds){
+const mins=Math.floor(seconds/60),secs=seconds%60;
+return `${mins}:${secs.toString().padStart(2,'0')}`;
+}
+function updateDisplay(){
+exerciseTimerDisplay.textContent=formatTime(exerciseTime);
+totalTimerDisplay.textContent=formatTime(300-totalTime);
+exerciseDisplay.textContent=exercises[currentExercise].name;
+instructionsDisplay.textContent=exercises[currentExercise].instructions;
+updateExerciseList();
+}
+function updateExerciseList(){
+const items=exerciseList.getElementsByClassName('exerciseItem');
+for(let i=0;i<items.length;i++){
+items[i].classList.remove('active');
+}
+const activeItem=exerciseList.querySelector(`[data-index="${currentExercise}"]`);
+if(activeItem) activeItem.classList.add('active');
+}
+function toggleTimer(){
+if(isRunning){
+clearInterval(timer);
+isRunning=false;
+toggleBtn.textContent='Resume';
+toggleBtn.classList.add('paused');
+}else{
+isRunning=true;
+timer=setInterval(()=>{
+totalTime++;
+exerciseTime--;
+updateDisplay();
+if(exerciseTime===0){
+currentExercise++;
+if(currentExercise>=exercises.length){
+clearInterval(timer);
+exerciseDisplay.textContent="Workout Complete!";
+instructionsDisplay.textContent="Great job!";
+toggleBtn.disabled=true;
+}else{
+exerciseTime=exercises[currentExercise].duration;
+}}
+if(totalTime===300){
+clearInterval(timer);
+isRunning=false;
+toggleBtn.disabled=true;
+}},1000);
+toggleBtn.textContent='Pause';
+toggleBtn.classList.remove('paused');
+}}
+function jumpToExercise(index){
+if(isRunning){
+currentExercise=index;
+totalTime=exercises.slice(0,index).reduce((sum,ex)=>sum+ex.duration,0);
+exerciseTime=exercises[index].duration;
+updateDisplay();
+}}
+exercises.forEach((exercise,index)=>{
+if(!exercise.name.includes("Transition")){
+const item=document.createElement('div');
+item.className='exerciseItem';
+item.textContent=exercise.name;
+item.dataset.index=index;
+item.addEventListener('click',()=>jumpToExercise(index));
+exerciseList.appendChild(item);
+}});
+toggleBtn.addEventListener('click',toggleTimer);
+exerciseTime=exercises[0].duration;
+updateDisplay();
+</script>
+</body>
+</html>
